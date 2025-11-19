@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # 支持反向传播的变量类
 class Variable:
     def __init__(self, data):
@@ -21,9 +22,17 @@ class Variable:
 
         funcs = [self.creator]
         while funcs:
-            f = funcs.pop() # 获取函数
-            x, y = f.input, f.output # 获取函数输入输出
-            x.grad = f.backward(y.grad)
+            f = funcs.pop()  # 获取函数
+            # 使其支持多个变量
+            gys = [output.grad for output in f.otuputs]
+            gxs = f.backward(*gys)
+            if not isinstance(gxs, tuple):
+                gxs = (gxs,)
+
+            for x, gx in zip(f.inputs, gxs):
+                x.grad = gx
+                if x.creator is not None:
+                    funcs.append(x.creator)
 
             if x.creator is not None:
                 funcs.append(x.creator)
