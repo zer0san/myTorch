@@ -47,3 +47,10 @@ class Exp(Function):
         x = self.input.data
         gx = np.exp(x) * gy
         return gx
+
+# 为了方便使用，定义函数
+def square(x):
+    return Square()(x)
+
+def exp(x):
+    return Exp()(x)
