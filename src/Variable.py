@@ -10,8 +10,11 @@ class Variable:
         self.creator = func
 
     def backward(self):
-        f = self.creator # 获取函数
-        if f is not None:
-            x = f.input # 获取函数输入
-            x.grad = f.backward(self.grad) # 调用函数的backward方法
-            x.backward() # 递归
+        funcs = [self.creator]
+        while funcs:
+            f = funcs.pop() # 获取函数
+            x, y = f.input, f.output # 获取函数输入输出
+            x.grad = f.backward(y.grad)
+
+            if x.creator is not None:
+                funcs.append(x.creator)
