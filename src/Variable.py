@@ -1,3 +1,4 @@
+import numpy as np
 
 # 支持反向传播的变量类
 class Variable:
@@ -10,6 +11,9 @@ class Variable:
         self.creator = func
 
     def backward(self):
+        if self.grad is None:
+            self.grad = np.ones_like(self.data)
+
         funcs = [self.creator]
         while funcs:
             f = funcs.pop() # 获取函数
