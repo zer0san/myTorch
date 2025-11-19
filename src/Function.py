@@ -1,7 +1,6 @@
 from src.Variable import Variable
 import numpy as np
 
-
 class Function:
     '''
     __call__方法是一个特殊的python方法，定义了这个方法后，
@@ -13,6 +12,8 @@ class Function:
         self.input = input  # 保存输入的变量
         y = self.forward(x)
         output = Variable(y)
+        output.set_creator(self) # 让输出变量保留创造者信息
+        self.output = output # 保存输出变量
         return output
 
     def forward(self, x):
