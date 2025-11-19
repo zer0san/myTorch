@@ -1,6 +1,12 @@
 from src.Variable import Variable
 import numpy as np
 
+# 将numpy的标量转换为ndarray
+def as_array(x):
+    if np.isscalar(x):
+        return np.array(x)
+    return x
+
 class Function:
     '''
     __call__方法是一个特殊的python方法，定义了这个方法后，
@@ -11,7 +17,7 @@ class Function:
         x = input.data
         self.input = input  # 保存输入的变量
         y = self.forward(x)
-        output = Variable(y)
+        output = Variable(as_array(y))
         output.set_creator(self) # 让输出变量保留创造者信息
         self.output = output # 保存输出变量
         return output

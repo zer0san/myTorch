@@ -3,6 +3,11 @@ import numpy as np
 # 支持反向传播的变量类
 class Variable:
     def __init__(self, data):
+        if data is not None:
+            # 检查数据类型
+            if not isinstance(data, np.ndarray):
+                raise TypeError(f'{type(data)} is not supported')
+
         self.data = data
         self.grad = None
         self.creator = None
