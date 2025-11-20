@@ -1,6 +1,7 @@
 from src.Variable import Variable
 import numpy as np
 import weakref
+from src.Config import Config
 
 
 # 将numpy的标量转换为ndarray
@@ -23,11 +24,13 @@ class Function:
         if not isinstance(ys, tuple):  # 对非元组情况额外处理
             ys = (ys,)
         outputs = [Variable(as_array(y)) for y in ys]
-        for output in outputs:  # 保存
-            output.set_creator(self)
-        self.inputs = inputs
-        # 修改为弱引用，避免循环引用
-        self.outputs = [weakref.ref(output) for output in outputs]
+        # 检查是否需要进行反向传播
+        if Config.enable_backward:
+            self.inputs = inputs
+            for output in outputs:  # 保存
+                output.set_creator(self)
+            # 修改为弱引用，避免循环引用
+            self.outputs = [weakref.ref(output) for output in outputs]
         # 如果列表只有一个元素，则返回第一个元素
         return outputs if len(outputs) > 1 else outputs[0]
 
