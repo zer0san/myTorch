@@ -27,7 +27,7 @@ class Variable:
         while funcs:
             f = funcs.pop()  # 获取函数
             # 使其支持多个变量
-            gys = [output.grad for output in f.otuputs]
+            gys = [output.grad for output in f.outputs]
             gxs = f.backward(*gys)
             if not isinstance(gxs, tuple):
                 gxs = (gxs,)
