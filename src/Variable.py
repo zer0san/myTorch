@@ -12,11 +12,9 @@ class Variable:
         self.data = data
         self.grad = None
         self.creator = None
-        self.generation = 0
 
     def set_creator(self, func):
         self.creator = func
-        self.generation = func.generation + 1
 
     def cleargrad(self):
         self.grad = None
@@ -25,20 +23,24 @@ class Variable:
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        funcs = []
-        seen_set = set()
+        # 构建拓扑排序
+        topo_funcs = []
+        visited = set()
 
-        def add_func(f):
-            if f not in seen_set:
-                funcs.append(f)
-                seen_set.add(f)
-                funcs.sort(key=lambda x: x.generation) # 按照世代排序
+        def build_topo(var):
+            if var.creator is None:
+                return
+            func = var.creator
+            if func not in visited:
+                visited.add(func)
+                for x in func.inputs:
+                    build_topo(x)
+                topo_funcs.append(func)
 
-        add_func(self.creator)
+        build_topo(self)
 
-        while funcs:
-            f = funcs.pop()  # 获取函数
-            # 使其支持多个变量
+        # 从后向前，进行反向传播
+        for f in reversed(topo_funcs):
             gys = [output.grad for output in f.outputs]
             gxs = f.backward(*gys)
             if not isinstance(gxs, tuple):
@@ -49,6 +51,3 @@ class Variable:
                     x.grad = gx
                 else:
                     x.grad = x.grad + gx
-
-                if x.creator is not None:
-                    add_func(x.creator)
