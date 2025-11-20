@@ -1,3 +1,6 @@
+from collections import defaultdict
+from collections import deque
+
 import numpy as np
 
 
@@ -23,38 +26,34 @@ class Variable:
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        # 构建拓扑排序,使用循环代替后序DFS
-        topo_funcs = []
-        stack = [self]
-        # 防止一个节点被dfs多次访问，导致梯度累加错误
-        visited = set()
-        # 使用集合优化性能
-        added = set()
+        # 使用依赖计数
+        deps_count = defaultdict(int)
+        funcs_to_visit = deque([self.creator] if self.creator is not None else [])
+        visited = set(funcs_to_visit)
+        while funcs_to_visit:
+            func = funcs_to_visit.popleft()
+            for x in func.inputs:
+                if x.creator is not None:
+                    deps_count[x.creator] += 1
+                    if x.creator not in visited:
+                        funcs_to_visit.append(x.creator)
+                        visited.add(x.creator)
 
-        while stack:
-            var = stack[-1]
-            if var.creator is None or var.creator in visited:
-                # 如果没有creator或creator已经处理过，出栈并加入 topo
-                stack.pop()
-                if var.creator is not None and var.creator not in added:
-                    topo_funcs.append(var.creator)
-                    added.add(var.creator)
-            else:
-                func = var.creator
-                visited.add(func)
-                for x in reversed(func.inputs):
-                    if x.creator is not None and x.creator not in visited:
-                        stack.append(x)
+        ready_queue = deque([f for f in visited if deps_count[f] == 0])
 
-        # 从后向前，进行反向传播
-        for f in reversed(topo_funcs):
-            gys = [output.grad for output in f.outputs]
-            gxs = f.backward(*gys)
+        while ready_queue:
+            func = ready_queue.popleft()
+            gys = [output.grad for output in func.outputs]
+            gxs = func.backward(*gys)
             if not isinstance(gxs, tuple):
                 gxs = (gxs,)
-
-            for x, gx in zip(f.inputs, gxs):
+            for x, gx in zip(func.inputs, gxs):
                 if x.grad is None:
                     x.grad = gx
                 else:
                     x.grad = x.grad + gx
+                # 更新前驱依赖计数
+                if x.creator is not None:
+                    deps_count[x.creator] -= 1
+                    if deps_count[x.creator] == 0:
+                        ready_queue.append(x.creator)
