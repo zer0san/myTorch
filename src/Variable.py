@@ -22,7 +22,7 @@ class Variable:
     def cleargrad(self):
         self.grad = None
 
-    def backward(self):
+    def backward(self, retain_grad=False):
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
@@ -58,3 +58,8 @@ class Variable:
                     deps_count[x.creator] -= 1
                     if deps_count[x.creator] == 0:
                         ready_queue.append(x.creator)
+
+            # 删除除了终端变量之外的所有变量的导数
+            if not retain_grad:
+                for output in func.outputs:
+                    output().grad = None
