@@ -43,7 +43,8 @@ class Variable:
 
         while ready_queue:
             func = ready_queue.popleft()
-            gys = [output.grad for output in func.outputs]
+            # 获取弱引用数值
+            gys = [output().grad for output in func.outputs]
             gxs = func.backward(*gys)
             if not isinstance(gxs, tuple):
                 gxs = (gxs,)

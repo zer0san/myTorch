@@ -1,5 +1,6 @@
 from src.Variable import Variable
 import numpy as np
+import weakref
 
 
 # 将numpy的标量转换为ndarray
@@ -25,7 +26,8 @@ class Function:
         for output in outputs:  # 保存
             output.set_creator(self)
         self.inputs = inputs
-        self.outputs = outputs
+        # 修改为弱引用，避免循环引用
+        self.outputs = [weakref.ref(output) for output in outputs]
         # 如果列表只有一个元素，则返回第一个元素
         return outputs if len(outputs) > 1 else outputs[0]
 
