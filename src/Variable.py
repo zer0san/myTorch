@@ -12,9 +12,11 @@ class Variable:
         self.data = data
         self.grad = None
         self.creator = None
+        self.generation = 0
 
     def set_creator(self, func):
         self.creator = func
+        self.generation = func.generation + 1
 
     def cleargrad(self):
         self.grad = None
@@ -23,7 +25,17 @@ class Variable:
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        funcs = [self.creator]
+        funcs = []
+        seen_set = set()
+
+        def add_func(f):
+            if f not in seen_set:
+                funcs.append(f)
+                seen_set.add(f)
+                funcs.sort(key=lambda x: x.generation) # 按照世代排序
+
+        add_func(self.creator)
+
         while funcs:
             f = funcs.pop()  # 获取函数
             # 使其支持多个变量
@@ -39,5 +51,4 @@ class Variable:
                     x.grad = x.grad + gx
 
                 if x.creator is not None:
-                    funcs.append(x.creator)
-
+                    add_func(x.creator)
