@@ -28,14 +28,17 @@ class Variable:
         stack = [self]
         # 防止一个节点被dfs多次访问，导致梯度累加错误
         visited = set()
+        # 使用集合优化性能
+        added = set()
 
         while stack:
             var = stack[-1]
             if var.creator is None or var.creator in visited:
                 # 如果没有creator或creator已经处理过，出栈并加入 topo
                 stack.pop()
-                if var.creator is not None and var.creator not in topo_funcs:
+                if var.creator is not None and var.creator not in added:
                     topo_funcs.append(var.creator)
+                    added.add(var.creator)
             else:
                 func = var.creator
                 visited.add(func)
