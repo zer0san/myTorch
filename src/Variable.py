@@ -23,8 +23,9 @@ class Variable:
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        # 构建拓扑排序
+        # 构建拓扑排序(后序DFS)
         topo_funcs = []
+        # 防止一个节点被dfs多次访问，导致梯度累加错误
         visited = set()
 
         def build_topo(var):
