@@ -23,22 +23,25 @@ class Variable:
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        # 构建拓扑排序(后序DFS)
+        # 构建拓扑排序,使用循环代替后序DFS
         topo_funcs = []
+        stack = [self]
         # 防止一个节点被dfs多次访问，导致梯度累加错误
         visited = set()
 
-        def build_topo(var):
-            if var.creator is None:
-                return
-            func = var.creator
-            if func not in visited:
+        while stack:
+            var = stack[-1]
+            if var.creator is None or var.creator in visited:
+                # 如果没有creator或creator已经处理过，出栈并加入 topo
+                stack.pop()
+                if var.creator is not None and var.creator not in topo_funcs:
+                    topo_funcs.append(var.creator)
+            else:
+                func = var.creator
                 visited.add(func)
-                for x in func.inputs:
-                    build_topo(x)
-                topo_funcs.append(func)
-
-        build_topo(self)
+                for x in reversed(func.inputs):
+                    if x.creator is not None and x.creator not in visited:
+                        stack.append(x)
 
         # 从后向前，进行反向传播
         for f in reversed(topo_funcs):
