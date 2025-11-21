@@ -6,15 +6,45 @@ import numpy as np
 
 # 支持反向传播的变量类
 class Variable:
-    def __init__(self, data):
+    def __init__(self, data, name):
         if data is not None:
             # 检查数据类型
             if not isinstance(data, np.ndarray):
                 raise TypeError(f'{type(data)} is not supported')
 
         self.data = data
+        self.name = name
         self.grad = None
         self.creator = None
+
+    # 获取形状
+    @property
+    def shape(self):
+        return self.data.shape
+
+    # 获取维度
+    @property
+    def ndim(self):
+        return self.data.ndim
+
+    # 获取大小
+    @property
+    def size(self):
+        return self.data.size
+
+    # 获取数据类型
+    @property
+    def dtype(self):
+        return self.data.dtype
+
+    def __len__(self):
+        return len(self.data)
+
+    # 自定义输出
+    def __repr__(self):
+        if self.data is None:
+            return 'Variable(None)'
+        return str(self.data)
 
     def set_creator(self, func):
         self.creator = func
