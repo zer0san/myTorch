@@ -19,6 +19,7 @@ def as_variable(x):
 
 # 支持反向传播的变量类
 class Variable:
+    __array_priority__ = 200
     def __init__(self, data, name=None):
         if data is not None:
             # 检查数据类型
