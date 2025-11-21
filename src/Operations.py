@@ -87,6 +87,33 @@ class Pow(Function):
         gx = c * x ** (c - 1) * gy
         return gx
 
+class Sin(Function):
+    def forward(self, x):
+        y = np.sin(x)
+        return y
+
+    def backward(self, gy):
+        x = self.inputs[0].data
+        gx = np.cos(x) * gy
+        return gx
+
+class Cos(Function):
+    def forward(self, x):
+        y = np.cos(x)
+        return y
+    def backward(self, gy):
+        x = self.inputs[0].data
+        gx = -np.sin(x) * gy
+        return gx
+
+class Tanh(Function):
+    def forward(self, x):
+        y = np.tanh(x)
+        return y
+    def backward(self, gy):
+        y = self.outputs[0]().data
+        gx = (1 - y ** 2) * gy
+        return gx
 
 # 为了方便使用，定义函数
 def square(x):
@@ -132,6 +159,15 @@ def rdiv(x0, x1):
 
 def pow(x,c):
     return Pow(c)(x)
+
+def sin(x):
+    return Sin()(x)
+
+def cos(x):
+    return Cos()(x)
+
+def tanh(x):
+    return Tanh()(x)
 
 def setup_operations():
     Variable.__add__ = add

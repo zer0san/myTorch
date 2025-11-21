@@ -5,19 +5,22 @@ from src.Config import Config
 import contextlib
 import numpy as np
 
+
 # 关闭反向传播
 @contextlib.contextmanager
 def using_config(name, value):
     old_value = getattr(Config, name)
-    setattr(Config, name, value) # 更新状态
+    setattr(Config, name, value)  # 更新状态
     try:
         yield
     finally:
-        setattr(Config, name, old_value) # 恢复状态
+        setattr(Config, name, old_value)  # 恢复状态
+
 
 # 定义no_grad()函数，方便调用
 def no_grad():
     return using_config('enable_backward', False)
+
 
 # 将numpy的标量转换为ndarray
 def as_array(x):
@@ -32,9 +35,11 @@ def as_variable(x):
         return x
     return Variable(x)
 
+
 # 支持反向传播的变量类
 class Variable:
     __array_priority__ = 200
+
     def __init__(self, data, name=None):
         if data is not None:
             # 检查数据类型
