@@ -1,4 +1,4 @@
-from src.core import Function, as_array
+from src.core import Function, as_array, Variable
 import numpy as np
 
 
@@ -132,3 +132,15 @@ def rdiv(x0, x1):
 
 def pow(x,c):
     return Pow(c)(x)
+
+def setup_operations():
+    Variable.__add__ = add
+    Variable.__mul__ = mul
+    Variable.__radd__ = add
+    Variable.__rmul__ = mul
+    Variable.__neg__ = neg
+    Variable.__sub__ = sub
+    Variable.__rsub__ = rsub
+    Variable.__truediv__ = div
+    Variable.__rtruediv__ = rdiv
+    Variable.__pow__ = pow

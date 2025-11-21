@@ -1,1 +1,3 @@
-from . import ops_patch
+from .Operations import setup_operations
+
+setup_operations()
