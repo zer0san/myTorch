@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections import deque
-
+import src.Oprations as Operations
 import numpy as np
 
 
@@ -45,6 +45,13 @@ class Variable:
         if self.data is None:
             return 'Variable(None)'
         return str(self.data)
+
+    # 重载运算符
+    def __mul__(self, other):
+        return Operations.mul(self, other)
+
+    def __add__(self, other):
+        return Operations.add(self, other)
 
     def set_creator(self, func):
         self.creator = func
