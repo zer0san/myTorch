@@ -1,6 +1,6 @@
 # 此文件中的函数，用于修改Config中的属性
 import contextlib
-from Config import Config
+from src.Config import Config
 
 @contextlib.contextmanager
 def using_config(name, value):

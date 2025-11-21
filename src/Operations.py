@@ -1,4 +1,4 @@
-from Function import Function
+from src.core import Function
 import numpy as np
 
 class Square(Function):
