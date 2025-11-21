@@ -115,12 +115,7 @@ class Function:
     '''
 
     def __call__(self, *inputs):
-        # inputs = [as_variable(x) for x in inputs]
-        tmp = []
-        for x in inputs:
-            x = as_variable(x)
-            tmp.append(x)
-        inputs = tmp
+        inputs = [as_variable(x) for x in inputs]
 
         # 为了支持可变长参数，将输入、输出改为列表
         xs = [x.data for x in inputs]
