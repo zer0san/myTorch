@@ -86,9 +86,9 @@ class Variable:
     def cleargrad(self):
         self.grad = None
 
-    def backward(self, retain_grad=False):
+    def backward(self, retain_grad=False, create_graph=False):
         if self.grad is None:
-            self.grad = np.ones_like(self.data)
+            self.grad = Variable(np.ones_like(self.data))
 
         # 使用依赖计数
         deps_count = defaultdict(int)
@@ -109,19 +109,22 @@ class Variable:
             func = ready_queue.popleft()
             # 获取弱引用数值
             gys = [output().grad for output in func.outputs]
-            gxs = func.backward(*gys)
-            if not isinstance(gxs, tuple):
-                gxs = (gxs,)
-            for x, gx in zip(func.inputs, gxs):
-                if x.grad is None:
-                    x.grad = gx
-                else:
-                    x.grad = x.grad + gx
-                # 更新前驱依赖计数
-                if x.creator is not None:
-                    deps_count[x.creator] -= 1
-                    if deps_count[x.creator] == 0:
-                        ready_queue.append(x.creator)
+            # 当create_graph为False时，反向传播中所有中间变量的梯度不会被保留
+            # 这只适用于求一阶导数，如果需要求多阶导数，需要将create_graph设置为True
+            with using_config('enable_backward', create_graph):
+                gxs = func.backward(*gys)
+                if not isinstance(gxs, tuple):
+                    gxs = (gxs,)
+                for x, gx in zip(func.inputs, gxs):
+                    if x.grad is None:
+                        x.grad = gx
+                    else:
+                        x.grad = x.grad + gx
+                    # 更新前驱依赖计数
+                    if x.creator is not None:
+                        deps_count[x.creator] -= 1
+                        if deps_count[x.creator] == 0:
+                            ready_queue.append(x.creator)
 
             # 删除除了终端变量之外的所有变量的导数
             if not retain_grad:
@@ -151,7 +154,7 @@ class Function:
                 output.set_creator(self)
             # 修改为弱引用，避免循环引用
             self.outputs = [weakref.ref(output) for output in outputs]
-        # 如果列表只有一个元素，则返回第一个元素
+        # 如果列表只有一个元素，则返回第一个元素F
         return outputs if len(outputs) > 1 else outputs[0]
 
     def forward(self, x):
