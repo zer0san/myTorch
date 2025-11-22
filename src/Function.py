@@ -238,7 +238,7 @@ class Sum(Function):
         gx = broadcast_to(gy, self.x_shape)  # 因此进行广播
         return gx
 
-
+# 广播
 class BroadcastTo(Function):
     def __init__(self, shape):
         self.shape = shape
@@ -252,7 +252,7 @@ class BroadcastTo(Function):
         gx = sum_to(gy, self.x_shape)
         return gx
 
-
+# 与广播相反
 class SumTo(Function):
     def __init__(self, shape):
         self.shape = shape

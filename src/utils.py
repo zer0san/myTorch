@@ -68,7 +68,7 @@ def plot_dot_graph(output, verbose=False, to_file='graph.png'):
     cmd = f'dot {graph_path} -T {extension} -o {to_file}'
     subprocess.run(cmd, shell=True)
 
-
+# 与广播相反，压缩多余的维度
 def sum_to(x, shape):
     ndim = len(shape)
     # 维度之间差值
