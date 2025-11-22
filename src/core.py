@@ -6,6 +6,7 @@ import contextlib
 import numpy as np
 import src.Function as Function
 
+
 # 关闭反向传播
 @contextlib.contextmanager
 def using_config(name, value):
@@ -132,12 +133,15 @@ class Variable:
                     output().grad = None
 
     def reshape(self, *shape):
-        if len(shape) == 1 and isinstance(shape[0],(tuple, list)):
+        if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
             shape = shape[0]
-        return Function.reshape(self,shape)
+        return Function.reshape(self, shape)
 
     def transpose(self):
         return Function.transpose(self)
+
+    def sum(self, axis=None, keepdims=False):
+        return Function.sum(self, axis, keepdims)
 
     @property
     def T(self):

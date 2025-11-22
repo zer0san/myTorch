@@ -2,6 +2,7 @@ from src.core import as_array, Variable, as_variable
 import numpy as np
 import weakref
 from src.Config import Config
+import src.utils as utils
 
 
 class Function:
@@ -196,6 +197,69 @@ class Perfume(Function):
     def backward(self, gy):
         gx = perfume(gy, self.dims)
         return gx
+
+
+class Sum(Function):
+    def __init__(self, axis, keepdims):
+        self.axis = axis
+        self.keepdims = keepdims
+
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = x.sum(axis=self.axis, keepdims=self.keepdims)
+        return y
+
+    def backward(self, gy):
+        # 将梯度恢复为原来的形状
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)
+        gx = broadcast_to(gy, self.x_shape)
+        return gx
+
+
+class BroadcastTo(Function):
+    def __init__(self, shape):
+        self.shape = shape
+
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = np.broadcast_to(x, self.shape)
+        return y
+
+    def backward(self, gy):
+        gx = sum_to(gy, self.x_shape)
+        return gx
+
+
+class SumTo(Function):
+    def __init__(self, shape):
+        self.shape = shape
+
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = utils.sum_to(x, self.shape)
+        return y
+
+    def backward(self, gy):
+        gx = broadcast_to(gy, self.x_shape)
+        return gx
+
+
+# 将形状变为指定形状，多余维度进行求和压缩
+def sum_to(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return SumTo(shape)(x)
+
+
+# 将变量广播到指定形状
+def broadcast_to(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return BroadcastTo(shape)(x)
+
+
+def sum(x, axis=None, keepdims=False):
+    return Sum(axis, keepdims)(x)
 
 
 def perfume(x, dims):
