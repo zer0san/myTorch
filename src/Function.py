@@ -211,8 +211,8 @@ class Sum(Function):
 
     def backward(self, gy):
         # 将梯度恢复为原来的形状
-        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)
-        gx = broadcast_to(gy, self.x_shape)
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims) # 这一步后gy.shape不一定等于x_shape
+        gx = broadcast_to(gy, self.x_shape) # 因此进行广播
         return gx
 
 
