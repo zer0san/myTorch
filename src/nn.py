@@ -1,8 +1,6 @@
 import werkzeug.local
 
 from src.Function import *
-from src.core import Variable
-
 
 class Linear(Function):
     def forward(self, x, w, b):
