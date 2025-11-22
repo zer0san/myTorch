@@ -139,3 +139,6 @@ class Variable:
     def transpose(self):
         return Function.transpose(self)
 
+    @property
+    def T(self):
+        return Function.transpose(self)
