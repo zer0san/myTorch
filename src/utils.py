@@ -50,7 +50,7 @@ def get_dot_graph(output, verbose=False):
                 add_func(x.creator)
     return 'digraph g {\n' + txt + '}'
 
-
+# output为目标梯度
 def plot_dot_graph(output, verbose=False, to_file='graph.png'):
     dot_graph = get_dot_graph(output, verbose)
     # 将dot数据保存至文件

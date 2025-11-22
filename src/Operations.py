@@ -1,4 +1,6 @@
-from src.core import Function, as_array, Variable
+from numpy.ma.core import shape
+
+from src.core import Function, as_array, Variable, as_variable
 import numpy as np
 
 
@@ -87,6 +89,7 @@ class Pow(Function):
         gx = c * x ** (c - 1) * gy
         return gx
 
+
 class Sin(Function):
     def forward(self, x):
         y = np.sin(x)
@@ -97,23 +100,50 @@ class Sin(Function):
         gx = cos(x) * gy
         return gx
 
+
 class Cos(Function):
     def forward(self, x):
         y = np.cos(x)
         return y
+
     def backward(self, gy):
         x, = self.inputs
         gx = -sin(x) * gy
         return gx
 
+
 class Tanh(Function):
     def forward(self, x):
         y = np.tanh(x)
         return y
+
     def backward(self, gy):
         y = self.outputs[0]()
         gx = (1 - y ** 2) * gy
         return gx
+
+
+class Reshape(Function):
+    def __init__(self, shape):
+        self.shape = shape
+
+    # 前向传播修改形状
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = x.reshape(self.shape)
+        return y
+
+    # 反向传播修改梯度形状
+    def backward(self, gy):
+        gx = reshape(gy, self.x_shape)
+        return gx
+
+
+def reshape(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return Reshape(shape)(x)
+
 
 # 为了方便使用，定义函数
 def square(x):
@@ -157,17 +187,22 @@ def rdiv(x0, x1):
     x1 = as_array(x1)
     return Div()(x1, x0)
 
-def pow(x,c):
+
+def pow(x, c):
     return Pow(c)(x)
+
 
 def sin(x):
     return Sin()(x)
 
+
 def cos(x):
     return Cos()(x)
 
+
 def tanh(x):
     return Tanh()(x)
+
 
 def setup_operations():
     Variable.__add__ = add
