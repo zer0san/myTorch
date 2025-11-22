@@ -1,4 +1,3 @@
-import werkzeug.local
 
 from src.Function import *
 
