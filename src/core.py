@@ -62,6 +62,9 @@ class Variable:
             return 1
         return len(self.data)
 
+    def maximum(self):
+        return self.data.max()
+
     # 自定义输出
     def __repr__(self):
         if self.data is None:
