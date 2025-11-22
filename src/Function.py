@@ -65,22 +65,35 @@ class Exp(Function):
 
 class Add(Function):
     def forward(self, x0, x1):
+        # 正向传播是基于ndarray，已经实现了广播
+        self.x0_shape = x0.shape
+        self.x1_shape = x1.shape
         y = x0 + x1
         return (y,)
 
     def backward(self, gy):
-        return gy, gy
+        # 反向传播的广播需要自己实现
+        gx0, gx1 = gy, gy
+        if self.x0_shape != self.x1_shape:
+            gx0 = sum_to(gx0, self.x0_shape)
+            gx1 = sum_to(gx1, self.x1_shape)
+        return gx0, gx1
 
 
 class Mul(Function):
     def forward(self, x0, x1):
+        self.x0_shape, self.x1_shape = x0.shape, x1.shape
         y = x0 * x1
         return (y,)
 
     def backward(self, gy):
         x0 = self.inputs[0]
         x1 = self.inputs[1]
-        return gy * x1, gy * x0
+        gx0, gx1 = gy, gy
+        if self.x1_shape != self.x0_shape:
+            gx0 = sum_to(gx0, self.x0_shape)
+            gx1 = sum_to(gx1, self.x1_shape)
+        return gx0 * x1, gx1 * x0
 
 
 # 相反数
@@ -94,22 +107,32 @@ class Neg(Function):
 
 class Sub(Function):
     def forward(self, x0, x1):
+        self.x0_shape, self.x1_shape = x0.shape, x1.shape
         y = x0 - x1
         return y
 
     def backward(self, gy):
-        return gy, -gy
+        gx0, gx1 = gy, gy
+        if self.x0_shape != self.x1_shape:
+            gx0 = sum_to(gx0, self.x0_shape)
+            gx1 = sum_to(gx1, self.x1_shape)
+        return gx0, -gx1
 
 
 class Div(Function):
     def forward(self, x0, x1):
+        self.x0_shape, self.x1_shape = x0.shape, x1.shape
         y = x0 / x1
         return y
 
     def backward(self, gy):
         x0 = self.inputs[0]
         x1 = self.inputs[1]
-        return gy / x1, gy * (-x0 / x1 ** 2)
+        gx0, gx1 = gy, gy
+        if self.x0_shape != self.x1_shape:
+            gx0 = sum_to(gx0, self.x0_shape)
+            gx1 = sum_to(gx1, self.x1_shape)
+        return gx0 / x1, gx1 * (-x0 / x1 ** 2)
 
 
 class Pow(Function):
@@ -211,8 +234,8 @@ class Sum(Function):
 
     def backward(self, gy):
         # 将梯度恢复为原来的形状
-        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims) # 这一步后gy.shape不一定等于x_shape
-        gx = broadcast_to(gy, self.x_shape) # 因此进行广播
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)  # 这一步后gy.shape不一定等于x_shape
+        gx = broadcast_to(gy, self.x_shape)  # 因此进行广播
         return gx
 
 
