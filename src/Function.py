@@ -3,6 +3,7 @@ import numpy as np
 import weakref
 from src.Config import Config
 
+
 class Function:
     '''
     __call__方法是一个特殊的python方法，定义了这个方法后，
@@ -37,7 +38,6 @@ class Function:
     # gy 是链式传播过程中，前一步计算出的导数(链式法则)
     def backward(self, gy):
         raise NotImplementedError()
-
 
 
 class Square(Function):
@@ -174,16 +174,37 @@ class Reshape(Function):
         gx = reshape(gy, self.x_shape)
         return gx
 
+
 class Transpose(Function):
     def forward(self, x):
         y = np.transpose(x)
         return y
+
     def backward(self, gy):
         gx = transpose(gy)
         return gx
 
+
+class Perfume(Function):
+    def __init__(self, dims):
+        self.dims = dims
+
+    def forward(self, x):
+        y = x.transpose(self.dims)
+        return y
+
+    def backward(self, gy):
+        gx = perfume(gy, self.dims)
+        return gx
+
+
+def perfume(x, dims):
+    return Perfume(dims)(x)
+
+
 def transpose(x):
     return Transpose()(x)
+
 
 def reshape(x, shape):
     if x.shape == shape:
