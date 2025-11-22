@@ -174,6 +174,16 @@ class Reshape(Function):
         gx = reshape(gy, self.x_shape)
         return gx
 
+class Transpose(Function):
+    def forward(self, x):
+        y = np.transpose(x)
+        return y
+    def backward(self, gy):
+        gx = transpose(gy)
+        return gx
+
+def transpose(x):
+    return Transpose()(x)
 
 def reshape(x, shape):
     if x.shape == shape:

@@ -136,4 +136,6 @@ class Variable:
             shape = shape[0]
         return Function.reshape(self,shape)
 
+    def transpose(self):
+        return Function.transpose(self)
 
