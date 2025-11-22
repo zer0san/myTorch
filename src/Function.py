@@ -238,6 +238,7 @@ class Sum(Function):
         gx = broadcast_to(gy, self.x_shape)  # 因此进行广播
         return gx
 
+
 # 广播
 class BroadcastTo(Function):
     def __init__(self, shape):
@@ -252,6 +253,7 @@ class BroadcastTo(Function):
         gx = sum_to(gy, self.x_shape)
         return gx
 
+
 # 与广播相反
 class SumTo(Function):
     def __init__(self, shape):
@@ -265,6 +267,23 @@ class SumTo(Function):
     def backward(self, gy):
         gx = broadcast_to(gy, self.x_shape)
         return gx
+
+
+# 矩阵乘法
+class MatMul(Function):
+    def forward(self, x, w):
+        y = x.dot(w)
+        return y
+
+    def backward(self, gy):
+        x, w = self.inputs
+        gx = matmul(gy, w.T)
+        gw = matmul(x.T, gy)
+        return gx, gw
+
+
+def matmul(x, w):
+    return MatMul()(x, w)
 
 
 # 将形状变为指定形状，多余维度进行求和压缩
@@ -369,3 +388,4 @@ def setup_operations():
     Variable.__truediv__ = div
     Variable.__rtruediv__ = rdiv
     Variable.__pow__ = pow
+    Variable.__matmul__ = matmul
