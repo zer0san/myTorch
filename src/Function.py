@@ -1,9 +1,21 @@
-from src.core import as_array, Variable, as_variable
+from src.core import Variable
 import numpy as np
 import weakref
 from src.Config import Config
 import src.utils as utils
 
+# 将numpy的标量转换为ndarray
+def as_array(x):
+    if np.isscalar(x):
+        return np.array(x)
+    return x
+
+
+# 将其它类型变量转换为Variable
+def as_variable(x):
+    if isinstance(x, Variable):
+        return x
+    return Variable(x)
 
 class Function:
     '''

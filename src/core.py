@@ -1,6 +1,5 @@
 from collections import defaultdict
 from collections import deque
-import weakref
 from src.Config import Config
 import contextlib
 import numpy as np
@@ -21,20 +20,6 @@ def using_config(name, value):
 # 定义no_grad()函数，方便调用
 def no_grad():
     return using_config('enable_backward', False)
-
-
-# 将numpy的标量转换为ndarray
-def as_array(x):
-    if np.isscalar(x):
-        return np.array(x)
-    return x
-
-
-# 将其它类型变量转换为Variable
-def as_variable(x):
-    if isinstance(x, Variable):
-        return x
-    return Variable(x)
 
 
 # 支持反向传播的变量类
@@ -73,6 +58,8 @@ class Variable:
         return self.data.dtype
 
     def __len__(self):
+        if self.data.ndim == 0:
+            return 1
         return len(self.data)
 
     # 自定义输出
