@@ -1,3 +1,3 @@
-from .Operations import setup_operations
+from .Function import setup_operations
 
 setup_operations()
