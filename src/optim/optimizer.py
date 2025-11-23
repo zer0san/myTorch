@@ -1,4 +1,6 @@
 
+__all__ = ['SGD']
+
 # 所有优化类的基类
 class Optimizer:
     def __init__(self):
@@ -26,3 +28,11 @@ class Optimizer:
 
     def add_hook(self, f):
         self.hooks.append(f)
+
+class SGD(Optimizer):
+    def __init__(self, lr):
+        super().__init__()
+        self.lr = lr
+
+    def update_one(self, param):
+        param.data -= self.lr * param.grad.data
