@@ -1,6 +1,5 @@
 from src.core import Function, sum_to
 
-__all__ = ['linear']
 
 # 线性层
 class Linear(Function):

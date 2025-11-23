@@ -3,7 +3,6 @@ from collections import defaultdict, deque
 from src.core.autograd import using_config
 import src.core.function as function
 
-
 __all__ = ['Variable']
 
 # 支持反向传播的变量类
