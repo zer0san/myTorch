@@ -34,12 +34,6 @@ class Layer:
             else:
                 yield obj
 
-    def layers(self):
-        for name in self._params:
-            obj = self.__dict__[name]
-            if isinstance(obj, Layer):
-                yield obj
-
     def cleargrad(self):
         for param in self.params():
             param.cleargrad()
