@@ -31,7 +31,7 @@ class Layer:
 
     def cleargrad(self):
         for param in self.params():
-            param.clear_grad()
+            param.cleargrad()
 
 
 # 线性层
