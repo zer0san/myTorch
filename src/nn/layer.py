@@ -11,7 +11,7 @@ class Layer:
         self._params = set()  # 保存所有参数
 
     def __setattr__(self, name, value):
-        if isinstance(value, Parameter):
+        if isinstance(value, (Parameter,Layer)):
             self._params.add(name)
         super().__setattr__(name, value)
 
@@ -28,7 +28,17 @@ class Layer:
 
     def params(self):
         for name in self._params:
-            yield self.__dict__[name]
+            obj = self.__dict__[name]
+            if isinstance(obj, Layer):
+                yield from obj.params()
+            else:
+                yield obj
+
+    def layers(self):
+        for name in self._params:
+            obj = self.__dict__[name]
+            if isinstance(obj, Layer):
+                yield obj
 
     def cleargrad(self):
         for param in self.params():
