@@ -1,6 +1,6 @@
 import numpy as np
 from collections import defaultdict, deque
-from .autograd import using_config
+from src.core.autograd import using_config
 import src.core.function as function
 
 
