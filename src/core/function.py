@@ -1,8 +1,12 @@
-from src.core import Variable
+from src.core.variable import Variable
 import numpy as np
 import weakref
-from src.Config import Config
+from src.config import Config
 import src.utils as utils
+
+__all__ = ['setup_operations','as_array', 'as_variable', 'Function', 'matmul', 'sum_to', 'broadcast_to', 'sum', 'perfume', 'transpose',
+            'square', 'exp', 'add', 'mul', 'neg', 'sub', 'div', 'pow', 'sin', 'cos', 'tanh']
+
 
 # 将numpy的标量转换为ndarray
 def as_array(x):
@@ -16,6 +20,7 @@ def as_variable(x):
     if isinstance(x, Variable):
         return x
     return Variable(x)
+
 
 class Function:
     '''

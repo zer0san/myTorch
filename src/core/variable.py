@@ -1,26 +1,10 @@
-from collections import defaultdict
-from collections import deque
-from src.Config import Config
-import contextlib
 import numpy as np
-import src.Function as Function
+from collections import defaultdict, deque
+from .autograd import using_config
+import src.core.function as function
 
 
-# 关闭反向传播
-@contextlib.contextmanager
-def using_config(name, value):
-    old_value = getattr(Config, name)
-    setattr(Config, name, value)  # 更新状态
-    try:
-        yield
-    finally:
-        setattr(Config, name, old_value)  # 恢复状态
-
-
-# 定义no_grad()函数，方便调用
-def no_grad():
-    return using_config('enable_backward', False)
-
+__all__ = ['Variable']
 
 # 支持反向传播的变量类
 class Variable:
@@ -125,14 +109,14 @@ class Variable:
     def reshape(self, *shape):
         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
             shape = shape[0]
-        return Function.reshape(self, shape)
+        return function.reshape(self, shape)
 
     def transpose(self):
-        return Function.transpose(self)
+        return function.transpose(self)
 
     def sum(self, axis=None, keepdims=False):
-        return Function.sum(self, axis, keepdims)
+        return function.sum(self, axis, keepdims)
 
     @property
     def T(self):
-        return Function.transpose(self)
+        return function.transpose(self)

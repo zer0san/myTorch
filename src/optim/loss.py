@@ -1,6 +1,7 @@
 # 损失函数类
-from src.Function import *
+from src.core import Function
 
+__all__ = ['MSE']
 
 # 均方误差
 class MeanSquaredError(Function):
