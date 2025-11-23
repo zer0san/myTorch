@@ -1,5 +1,6 @@
+import numpy as np
 
-__all__ = ['SGD']
+__all__ = ['SGD','MomentumSGD']
 
 # 所有优化类的基类
 class Optimizer:
@@ -36,3 +37,18 @@ class SGD(Optimizer):
 
     def update_one(self, param):
         param.data -= self.lr * param.grad.data
+
+class MomentumSGD(Optimizer):
+    def __init__(self, lr, momentum=0.9):
+        super().__init__()
+        self.lr = lr
+        self.momentum = momentum
+        self.vs = {}
+
+    def update_one(self, param):
+        v_key = id(param)
+        if v_key not in self.vs:
+            self.vs[v_key] = np.zeros_like(param.data)
+        self.vs[v_key] = self.momentum * self.vs[v_key] - self.lr * param.grad.data
+        param.data += self.vs[v_key]
+
