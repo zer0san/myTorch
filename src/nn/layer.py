@@ -1,20 +1,13 @@
-from src.core import Function, sum_to
+from .parameter import Parameter
 
-# 线性层
-class Linear(Function):
-    def forward(self, x, w, b):
-        y = x @ w
-        if b is not None:
-            y += b
-        return y
+__all__ = ['Layer']
 
-    def backward(self, gy):
-        x, w, b = self.inputs
-        gb = None if b.data is None else sum_to(gy, b.shape)
-        gx = gy @ w.T
-        gw = x.T @ gy
-        return gx, gw, gb
+class Layer:
+    def __init__(self):
+        self._params = set()  # 保存所有参数
 
+    def __setattr__(self, name, value):
+        if isinstance(value, Parameter):
+            self._params.add(name)
+        super().__setattr__(name, value)
 
-def linear(x, w, b=None):
-    return Linear()(x, w, b)
