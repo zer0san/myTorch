@@ -5,8 +5,6 @@ __all__ = ['Datasets', 'BigDatasets']
 
 class Datasets:
     def __init__(self, data, label=None, transform=None, target_transform=None):
-        self.transform = transform
-        self.target_transform = target_transform
         self.transform = transform or (lambda x: x)
         self.target_transform = target_transform or (lambda x: x)
         self.data = data
