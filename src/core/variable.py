@@ -45,7 +45,7 @@ class Variable:
             return 1
         return len(self.data)
 
-    def maximum(self):
+    def max(self):
         return self.data.max()
 
     # 自定义输出
