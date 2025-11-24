@@ -5,7 +5,7 @@ from src.config import Config
 import src.utils as utils
 
 __all__ = ['setup_operations','as_array', 'as_variable', 'Function', 'matmul', 'sum_to', 'broadcast_to', 'sum', 'perfume', 'transpose',
-            'square', 'exp', 'add', 'mul', 'neg', 'sub', 'div', 'pow', 'sin', 'cos', 'tanh','get_item']
+            'square', 'exp', 'add', 'mul', 'neg', 'sub', 'div', 'pow', 'sin', 'cos', 'tanh','get_item','log']
 
 
 # 将numpy的标量转换为ndarray
@@ -422,6 +422,16 @@ class GetItemGrad(Function):
     def backward(self, gy):
         return get_item(gy, self.slices)
 
+class Log(Function):
+    def forward(self, x):
+        return np.log(x)
+
+    def backward(self, gy):
+        x, = self.inputs
+        return gy / x
+
+def log(x):
+    return Log()(x)
 
 def setup_operations():
     Variable.__add__ = add
