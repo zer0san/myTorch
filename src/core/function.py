@@ -393,20 +393,6 @@ def cos(x):
 def tanh(x):
     return Tanh()(x)
 
-
-def setup_operations():
-    Variable.__add__ = add
-    Variable.__mul__ = mul
-    Variable.__radd__ = add
-    Variable.__rmul__ = mul
-    Variable.__neg__ = neg
-    Variable.__sub__ = sub
-    Variable.__rsub__ = rsub
-    Variable.__truediv__ = div
-    Variable.__rtruediv__ = rdiv
-    Variable.__pow__ = pow
-    Variable.__matmul__ = matmul
-
 class GetItem(Function):
     def __init__(self, slices):
         self.slices = slices
@@ -435,3 +421,20 @@ class GetItemGrad(Function):
 
     def backward(self, gy):
         return get_item(gy, self.slices)
+
+
+def setup_operations():
+    Variable.__add__ = add
+    Variable.__mul__ = mul
+    Variable.__radd__ = add
+    Variable.__rmul__ = mul
+    Variable.__neg__ = neg
+    Variable.__sub__ = sub
+    Variable.__rsub__ = rsub
+    Variable.__truediv__ = div
+    Variable.__rtruediv__ = rdiv
+    Variable.__pow__ = pow
+    Variable.__matmul__ = matmul
+    Variable.__getitem__ = get_item
+
+
