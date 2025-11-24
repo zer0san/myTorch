@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ['Datasets']
+__all__ = ['Datasets', 'BigDatasets']
 
 
 class Datasets:
