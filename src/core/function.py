@@ -4,8 +4,10 @@ import weakref
 from src.config import Config
 import src.utils as utils
 
-__all__ = ['setup_operations','as_array', 'as_variable', 'Function', 'matmul', 'sum_to', 'broadcast_to', 'sum', 'perfume', 'transpose',
-            'square', 'exp', 'add', 'mul', 'neg', 'sub', 'div', 'pow', 'sin', 'cos', 'tanh','get_item','log']
+__all__ = ['setup_operations', 'as_array', 'as_variable', 'Function', 'matmul', 'sum_to', 'broadcast_to', 'sum',
+           'perfume', 'transpose',
+           'square', 'exp', 'add', 'mul', 'neg', 'sub', 'div', 'pow', 'sin', 'cos', 'tanh', 'get_item', 'log',
+           'accuracy']
 
 
 # 将numpy的标量转换为ndarray
@@ -393,6 +395,7 @@ def cos(x):
 def tanh(x):
     return Tanh()(x)
 
+
 class GetItem(Function):
     def __init__(self, slices):
         self.slices = slices
@@ -406,8 +409,10 @@ class GetItem(Function):
         f = GetItemGrad(self.slices, x.shape)
         return f(gy)
 
+
 def get_item(x, slices):
     return GetItem(slices)(x)
+
 
 class GetItemGrad(Function):
     def __init__(self, slices, in_shape):
@@ -422,6 +427,7 @@ class GetItemGrad(Function):
     def backward(self, gy):
         return get_item(gy, self.slices)
 
+
 class Log(Function):
     def forward(self, x):
         return np.log(x)
@@ -430,8 +436,18 @@ class Log(Function):
         x, = self.inputs
         return gy / x
 
+
 def log(x):
     return Log()(x)
+
+
+def accuracy(y_pred, y):
+    y_pred, y = as_variable(y_pred), as_variable(y)
+    t = y_pred.data.argmax(axis=1).reshape(y.shape)
+    result = (t == y.data)
+    acc = result.mean()
+    return Variable(as_array(acc))
+
 
 def setup_operations():
     Variable.__add__ = add
@@ -446,5 +462,3 @@ def setup_operations():
     Variable.__pow__ = pow
     Variable.__matmul__ = matmul
     Variable.__getitem__ = get_item
-
-
