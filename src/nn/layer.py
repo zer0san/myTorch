@@ -2,17 +2,18 @@ from .parameter import Parameter
 import weakref
 import src.nn.layers as layers
 import numpy as np
+from src.cuda import get_array_module, as_cupy, as_numpy
 
 __all__ = ['Linear']
 
 
 class Layer:
     def __init__(self):
-        self._params = set()  # 保存所有参数
+        self._params_names = set()  # 保存所有参数
 
     def __setattr__(self, name, value):
-        if isinstance(value, (Parameter,Layer)):
-            self._params.add(name)
+        if isinstance(value, (Parameter, Layer)):
+            self._params_names.add(name)
         super().__setattr__(name, value)
 
     def __call__(self, *inputs):
@@ -27,8 +28,8 @@ class Layer:
         raise NotImplementedError()
 
     def params(self):
-        for name in self._params:
-            obj = self.__dict__[name]
+        for name in self._params_names:
+            obj = getattr(self, name)
             if isinstance(obj, Layer):
                 yield from obj.params()
             else:
@@ -38,10 +39,20 @@ class Layer:
         for param in self.params():
             param.cleargrad()
 
+    def to_gpu(self):
+        for param in self.params():
+            param.to_gpu()
+        return self
+
+    def to_cpu(self):
+        for param in self.params():
+            param.to_cpu()
+        return self
+
 
 # 线性层
 class Linear(Layer):
-    def __init__(self, out_size, no_bias=False, dtype=np.float32, in_size = None):
+    def __init__(self, out_size, no_bias=False, dtype=np.float32, in_size=None):
         super().__init__()
         self.in_size = in_size
         self.out_size = out_size
