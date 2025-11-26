@@ -1,7 +1,6 @@
 import numpy as np
-from src.core import Variable
 
-__all__ = ['get_array_module','as_numpy','as_cupy']
+__all__= ['get_array_module', 'as_numpy', 'as_cupy']
 
 gpu_enable = True
 
@@ -10,9 +9,12 @@ try:
 except ImportError:
     gpu_enable = False
 
+def is_variable(x):
+    from src.core import Variable
+    return isinstance(x, Variable)
 
 def get_array_module(x):
-    if isinstance(x, Variable):
+    if is_variable(x):
         x = x.data
 
     if not gpu_enable:
@@ -22,7 +24,7 @@ def get_array_module(x):
 
 
 def as_numpy(x):
-    if isinstance(x, Variable):
+    if is_variable(x):
         x = x.data
 
     if np.isscalar(x):
@@ -33,7 +35,7 @@ def as_numpy(x):
 
 
 def as_cupy(x):
-    if isinstance(x, Variable):
+    if is_variable(x):
         x = x.data
 
     if not gpu_enable:

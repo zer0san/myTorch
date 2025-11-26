@@ -2,8 +2,16 @@ import numpy as np
 from collections import defaultdict, deque
 from src.core.autograd import using_config
 import src.core.function as function
+from src.cuda import get_array_module, as_cupy, as_numpy
 
 __all__ = ['Variable']
+
+try:
+    import cupy as cp
+    array_types = (np.ndarray, cp.ndarray)
+except ImportError:
+    array_types = (np.ndarray)
+
 
 # 支持反向传播的变量类
 class Variable:
@@ -12,7 +20,7 @@ class Variable:
     def __init__(self, data, name=None):
         if data is not None:
             # 检查数据类型
-            if not isinstance(data, np.ndarray):
+            if not isinstance(data, array_types):
                 raise TypeError(f'{type(data)} is not supported')
 
         self.data = data
@@ -62,7 +70,8 @@ class Variable:
 
     def backward(self, retain_grad=False, create_graph=False):
         if self.grad is None:
-            self.grad = Variable(np.ones_like(self.data))
+            xp = get_array_module(self.data)
+            self.grad = Variable(xp.ones_like(self.data))
 
         # 使用依赖计数
         deps_count = defaultdict(int)
@@ -119,3 +128,11 @@ class Variable:
     @property
     def T(self):
         return function.transpose(self)
+
+    def to_cpu(self):
+        if self.data is not None:
+            self.data = as_numpy(self.data)
+
+    def to_gpu(self):
+        if self.data is not None:
+            self.data = as_cupy(self.data)
