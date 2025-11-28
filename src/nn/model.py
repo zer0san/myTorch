@@ -20,15 +20,20 @@ class MLP(Model):
         '''
         super().__init__()
         self.activation = activation
-        self.layers = []
+        self._layer_names = []
 
         for i, out_size in enumerate(fc_output_sizes):
             layer = L.Linear(out_size)
-            setattr(self, f'l{i}', layer)
-            self.layers.append(layer)
+            name = f'l{i}'
+            setattr(self, name, layer)
+            self._layer_names.append(name)
 
     def forward(self, x):
-        for l in self.layers[:-1]:
-            x = self.activation(l(x))
-        return self.layers[-1](x)
+        for i,name in enumerate(self._layer_names):
+            layer = getattr(self, name)
+            if i < len(self._layer_names):
+                x = self.activation(layer(x))
+            else:
+                x = layer(x)
+        return x
 

@@ -9,11 +9,14 @@ __all__ = ['Linear']
 
 class Layer:
     def __init__(self):
-        self._params_names = set()  # 保存所有参数
+        self._layers = {}
+        self._params = {}
 
     def __setattr__(self, name, value):
-        if isinstance(value, (Parameter, Layer)):
-            self._params_names.add(name)
+        if isinstance(value, Parameter):
+            self._params[name] = value
+        elif isinstance(value, Layer):
+            self._layers[name] = value
         super().__setattr__(name, value)
 
     def __call__(self, *inputs):
@@ -28,25 +31,39 @@ class Layer:
         raise NotImplementedError()
 
     def params(self):
-        for name in self._params_names:
-            obj = getattr(self, name)
-            if isinstance(obj, Layer):
-                yield from obj.params()
-            else:
-                yield obj
+        for p in self._params.values():
+            yield p
+        for l in self._layers.values():
+            yield from l.params()
+
+    def named_params(self, prefix=''):
+        for name, params in self._params.items():
+            yield prefix + name, params
+        for lname, layer in self._layers.items():
+            new_prefix = prefix + lname + '.'
+            yield from layer.named_params(new_prefix)
+
+    def children(self):
+        return self._layers.values()
 
     def cleargrad(self):
         for param in self.params():
             param.cleargrad()
+        for layer in self._layers.values():
+            layer.cleargrad()
 
     def to_gpu(self):
         for param in self.params():
             param.to_gpu()
+        for layer in self._layers.values():
+            layer.to_gpu()
         return self
 
     def to_cpu(self):
         for param in self.params():
             param.to_cpu()
+        for layer in self._layers.values():
+            layer.to_cpu()
         return self
 
 
