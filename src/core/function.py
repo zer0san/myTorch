@@ -1,6 +1,7 @@
 from src.core.variable import Variable
 import numpy as np
 import weakref
+from src.cuda import cuda
 from src.config import Config
 import src.utils as utils
 
@@ -73,12 +74,13 @@ class Square(Function):
 
 class Exp(Function):
     def forward(self, x):
-        y = np.exp(x)
+        xp = cuda.get_array_module(x)
+        y = xp.exp(x)
         return y
 
     def backward(self, gy):
-        x = self.inputs[0]
-        gx = np.exp(x) * gy
+        y = self.outputs[0]()
+        gx = gy * y
         return gx
 
 
@@ -171,7 +173,8 @@ class Pow(Function):
 
 class Sin(Function):
     def forward(self, x):
-        y = np.sin(x)
+        xp = cuda.get_array_module(x)
+        y = xp.sin(x)
         return y
 
     def backward(self, gy):
@@ -182,7 +185,8 @@ class Sin(Function):
 
 class Cos(Function):
     def forward(self, x):
-        y = np.cos(x)
+        xp = cuda.get_array_module(x)
+        y = xp.cos(x)
         return y
 
     def backward(self, gy):
@@ -193,7 +197,8 @@ class Cos(Function):
 
 class Tanh(Function):
     def forward(self, x):
-        y = np.tanh(x)
+        xp = cuda.get_array_module(x)
+        y = xp.tanh(x)
         return y
 
     def backward(self, gy):
@@ -220,11 +225,13 @@ class Reshape(Function):
 
 class Transpose(Function):
     def forward(self, x):
-        y = np.transpose(x)
+        xp = cuda.get_array_module(x)
+        y = xp.transpose(x)
         return y
 
     def backward(self, gy):
-        gx = transpose(gy)
+        xp = cuda.get_array_module(gy)
+        gx = xp.transpose(gy)
         return gx
 
 
@@ -265,7 +272,8 @@ class BroadcastTo(Function):
 
     def forward(self, x):
         self.x_shape = x.shape
-        y = np.broadcast_to(x, self.shape)
+        xp = cuda.get_array_module(x)
+        y = xp.broadcast_to(x, self.shape)
         return y
 
     def backward(self, gy):
@@ -420,8 +428,9 @@ class GetItemGrad(Function):
         self.in_shape = in_shape
 
     def forward(self, gy):
-        gx = np.zeros(self.in_shape)
-        np.add.at(gx, self.slices, gy)
+        xp = cuda.get_array_module(gy)
+        gx = xp.zeros(self.in_shape)
+        xp.add.at(gx, self.slices, gy)
         return gx
 
     def backward(self, gy):
@@ -430,7 +439,8 @@ class GetItemGrad(Function):
 
 class Log(Function):
     def forward(self, x):
-        return np.log(x)
+        xp = cuda.get_array_module(x)
+        return xp.log(x)
 
     def backward(self, gy):
         x, = self.inputs
