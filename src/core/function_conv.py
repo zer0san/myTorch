@@ -3,7 +3,7 @@ from src.cuda import cuda
 from src.core.function import Function
 from src.cuda import cuda
 
-__all__ = ['conv2d']
+__all__ = ['img2col','col2img']
 
 def img2col(input_image, kernel_size, stride=1, padding=0):
     xp = cuda.get_array_module(input_image)
@@ -57,60 +57,3 @@ def col2img(cols, padded_shape, kernel_size, stride=1, padding=0):
     return img
 
 
-class Conv2d(Function):
-    def __init__(self, out_channels, kernel_size, stride=1, pad=0, bias=True):
-        super().__init__()
-        self.out_channels = out_channels
-        self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
-        self.stride = stride
-        self.pad = pad
-        self.use_bias = bias
-        self.W = None
-        self.b = None
-
-    def forward(self, x):
-        kh, kw = self.kernel_size
-        xp = cuda.get_array_module(x)
-        N, C, H, W = x.shape
-
-        if self.W is None:
-            scale = xp.sqrt(2.0 / (C * kh * kw))
-            W_data = xp.random.randn(self.out_channels, C, kh, kw).astype('f') * scale
-            self.W = Variable(W_data)  # 必须是 Parameter！
-            if self.use_bias:
-                self.b = Variable(xp.zeros(self.out_channels, dtype='f'))
-
-        col, cache = img2col(x, self.kernel_size, self.stride, self.pad)
-        self.cache = cache  # 保存 padded_shape, out_h, out_w
-
-        W_flat = self.W.data.reshape(self.out_channels, -1)
-        out = W_flat @ col
-
-        if self.use_bias:
-            out += self.b.data.reshape(-1, 1)
-
-        (padded_shape, out_h, out_w) = cache
-        out = out.reshape(self.out_channels, N, out_h, out_w).transpose(1,0,2,3)
-        return out
-
-    def backward(self, gy):
-        x = self.inputs[0].data
-        padded_shape, out_h, out_w = self.cache
-        OC = gy.shape[1]
-
-        gy_flat = gy.data.transpose(1,0,2,3).reshape(OC, -1)
-
-        col, _ = img2col(x, self.kernel_size, self.stride, self.pad)
-        dW = (gy_flat @ col.T).reshape(self.W.shape)
-        self.W.grad = dW
-
-        if self.use_bias:
-            self.b.grad = gy_flat.sum(axis=1)
-
-        dcol = self.W.data.reshape(OC, -1).T @ gy_flat
-        dx = col2img(dcol, padded_shape, self.kernel_size, self.stride, self.pad)
-        return dx
-
-
-def conv2d(x, out_channels, kernel_size, stride=1, pad=0, bias=True):
-    return Conv2d(out_channels, kernel_size, stride, pad, bias)(x)

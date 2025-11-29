@@ -3,8 +3,9 @@ import weakref
 import src.nn.layers as layers
 import numpy as np
 import os
+from src.cuda import cuda
 
-__all__ = ['Linear']
+__all__ = ['Linear','Conv2d']
 
 
 class Layer:
@@ -77,7 +78,7 @@ class Layer:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"{file_path} 不存在")
         npz = np.load(file_path)
-        for full_name,data in npz.items():
+        for full_name, data in npz.items():
             parts = full_name.split('.')
             current_layer = self
             for name in parts[:-1]:
@@ -113,3 +114,24 @@ class Linear(Layer):
             self._init_W()
         y = layers.linear(x, self.W, self.b)
         return y
+
+
+class Conv2d(Layer):
+    def __init__(self, out_channels, ksize, stride=1, pad=0, bias=False):
+        super().__init__()
+        self.W = Parameter(None, name='W')
+        self.b = Parameter(None, name='b') if bias else None
+        self.stride = stride
+        self.pad = pad
+        self.out_channels = out_channels
+        self.ksize = ksize
+
+    def forward(self, x):
+        if self.W.data is None:
+            C = x.shape[1]
+            xp = cuda.get_array_module(x)
+            scale = xp.sqrt(2 / (C * self.ksize ** 2))
+            self.W.data = xp.random.randn(self.out_channels, C, self.ksize, self.ksize) * scale
+            if self.b is not None:
+                self.b.data = xp.zeros(self.out_channels)
+        return layers.conv2d(x, self.W, self.b, self.stride, self.pad)
