@@ -2,7 +2,7 @@ from .parameter import Parameter
 import weakref
 import src.nn.layers as layers
 import numpy as np
-from src.cuda import get_array_module, as_cupy, as_numpy
+import os
 
 __all__ = ['Linear']
 
@@ -65,6 +65,26 @@ class Layer:
         for layer in self._layers.values():
             layer.to_cpu()
         return self
+
+    # 模型的保存和加载
+    def save_params(self, file_path):
+        param_dict = {}
+        for name, param in self.named_params():
+            param_dict[name] = param.data
+        np.savez(file_path, **param_dict)
+
+    def load_params(self, file_path):
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"{file_path} 不存在")
+        npz = np.load(file_path)
+        for full_name,data in npz.items():
+            parts = full_name.split('.')
+            current_layer = self
+            for name in parts[:-1]:
+                if not hasattr(current_layer, name):
+                    setattr(current_layer, name, Layer())
+                current_layer = getattr(current_layer, name)
+                setattr(current_layer, parts[-1], Parameter(data))
 
 
 # 线性层
