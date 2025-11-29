@@ -1,6 +1,6 @@
 import numpy as np
 from collections import defaultdict, deque
-from src.core.autograd import using_config
+from src.core.modelConf import using_config
 import src.core.function as function
 from src.cuda import get_array_module, as_cupy, as_numpy
 

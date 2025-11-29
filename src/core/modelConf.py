@@ -1,7 +1,7 @@
 import contextlib
 from src.config import Config
 
-__all__ = ['using_config', 'no_grad']
+__all__ = ['using_config', 'no_grad', 'test_mode']
 
 # 关闭反向传播
 @contextlib.contextmanager
@@ -18,3 +18,6 @@ def using_config(name, value):
 def no_grad():
     return using_config('enable_backward', False)
 
+# 切换到测试模式
+def test_mode():
+    return using_config('train',False)
