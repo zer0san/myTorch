@@ -12,9 +12,9 @@ __all__ = ['setup_operations', 'as_array', 'as_variable', 'Function', 'matmul', 
 
 
 # 将numpy的标量转换为ndarray
-def as_array(x):
+def as_array(x, array_module=np):
     if np.isscalar(x):
-        return np.array(x)
+        return array_module.array(x)
     return x
 
 
@@ -289,6 +289,7 @@ class SumTo(Function):
     def forward(self, x):
         self.x_shape = x.shape
         y = utils.sum_to(x, self.shape)
+        y = utils.sum_to(x, self.shape)
         return y
 
     def backward(self, gy):
@@ -355,12 +356,12 @@ def exp(x):
 
 
 def add(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Add()(x0, x1)
 
 
 def mul(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Mul()(x0, x1)
 
 
@@ -369,22 +370,22 @@ def neg(x):
 
 
 def sub(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Sub()(x0, x1)
 
 
 def rsub(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Sub()(x1, x0)
 
 
 def div(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Div()(x0, x1)
 
 
 def rdiv(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1,cuda.get_array_module(x0.data))
     return Div()(x1, x0)
 
 
