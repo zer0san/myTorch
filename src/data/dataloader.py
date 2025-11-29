@@ -1,16 +1,17 @@
-from src.data.datasets import Datasets, BigDatasets
 import numpy as np
+from src.cuda import cuda
 
 __all__ = ['DataLoader']
 
 
 class DataLoader:
-    def __init__(self, dataset, batch_size, shuffle=True, drop_last=False):
+    def __init__(self, dataset, batch_size, shuffle=True, drop_last=False, gpu=False):
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.data_size = len(dataset)
+        self.gpu = gpu
 
     def __iter__(self):
         if self.shuffle:
@@ -40,6 +41,20 @@ class DataLoader:
         sample = batch[0]
         if isinstance(sample, tuple):
             xs, ys = zip(*batch)
-            return np.stack(xs), np.stack(ys) # 使用stack转换为numpy数组
+            xs = np.stack(xs)
+            ys = np.stack(ys)
+            if self.gpu:
+                xs = cuda.as_cupy(xs)
+                ys = cuda.as_cupy(ys)
+            return xs,ys
         else:
-            return np.stack(batch)
+            batch = np.stack(batch)
+            if self.gpu:
+                batch = cuda.as_cupy(batch)
+            return batch
+
+    def to_cpu(self):
+        self.gpu = False
+
+    def to_gpu(self):
+        self.gpu = True

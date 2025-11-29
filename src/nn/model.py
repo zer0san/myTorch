@@ -20,6 +20,7 @@ class MLP(Model):
         '''
         super().__init__()
         self.activation = activation
+        # 这里只存储层的名字，具体的内容在层对应的对象中
         self._layer_names = []
 
         for i, out_size in enumerate(fc_output_sizes):
