@@ -5,7 +5,7 @@ import numpy as np
 import os
 from src.cuda import cuda
 
-__all__ = ['Linear','Conv2d']
+__all__ = ['Linear', 'Conv2d']
 
 
 class Layer:
@@ -135,3 +135,25 @@ class Conv2d(Layer):
             if self.b is not None:
                 self.b.data = xp.zeros(self.out_channels)
         return layers.conv2d(x, self.W, self.b, self.stride, self.pad)
+
+
+class MaxPool2d(Layer):
+    def __init__(self, ksize, stride=1, pad=0):
+        super().__init__()
+        self.ksize = ksize
+        self.stride = stride
+        self.pad = pad
+
+    def forward(self, x):
+        return layers.max_pool2d(x, self.ksize, self.stride, self.pad)
+
+
+class AvePool2d(Layer):
+    def __init__(self, ksize, stride=1, pad=0):
+        super().__init__()
+        self.ksize = ksize
+        self.stride = stride
+        self.pad = pad
+
+    def forward(self, x):
+        return layers.ave_pool2d(x, self.ksize, self.stride, self.pad)
