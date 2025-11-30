@@ -118,9 +118,59 @@ class MaxPool2d(Function):
         self.max_idx] = gy.data
 
         dx = col2img(dcol.reshape(-1, self.kh * self.kw), pad_shape, (self.kh, self.kw), self.stride, 0)
-        if self.pad > 0:
-            dx = dx[:, :, self.pad:-self.pad, self.pad:-self.pad]
         return dx
 
-def max_pool2d(x,ksize,stride=1,pad=0):
-    return MaxPool2d(ksize,stride,pad)(x)
+
+def max_pool2d(x, ksize, stride=1, pad=0):
+    return MaxPool2d(ksize, stride, pad)(x)
+
+
+class AvePool2d(Function):
+    def __init__(self, kernel_size, stride=1, pad=0):
+        super().__init__()
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+        else:
+            assert len(kernel_size) == 2
+        self.kh, self.kw = kernel_size
+        self.stride = stride
+        self.pad = pad
+
+    def forward(self, x):
+        xp = cuda.get_array_module(x)
+        N, C, H, W = x.shape
+        kh, kw = self.kh, self.kw
+
+        if self.pad > 0:
+            x_pad = xp.pad(x, (0, 0), (0, 0), (self.pad, self.pad), (self.pad, self.pad), mode='constant',
+                           constant_values=0)
+        else:
+            x_pad = x
+        hp, wp = x_pad.shape[2:]
+        out_h, out_w = (hp - kh) // self.stride + 1, (wp - kw) // self.stride + 1
+        col, _ = img2col(x_pad, (kh, kw), stride=self.stride, padding=0)
+        col = col.reshape(N, C, out_h, out_w, kh * kw)
+
+        out = col.mean(axis=-1)
+        self.cache = (x.shape, (N, C, hp, wp), out_h, out_w, kh * kw)
+        return out
+
+    def backward(self, gy):
+        xp = cuda.get_array_module(gy)
+        original_shape, padded_shape, out_h, out_w, window_size = self.cache
+        N, C, hp, wp = padded_shape
+
+        gy = gy.data
+
+        # 每个位置的梯度要平均分配给窗口内的kh*kw个像素
+        # 所以每个像素得到的梯度 = gy / (kh*kw)
+        dcol = xp.full((N, C, out_h, out_w, window_size), 1.0 / window_size, dtype=gy.dtype)
+        dcol *= gy[..., xp.newaxis]  # (N,C,OH,OW,1)增加一维，为了广播
+
+        dcol = dcol.reshape(-1, window_size)
+        dx = col2img(dcol, padded_shape, (self.kh, self.kw), stride=self.stride, padding=self.pad)
+
+        return dx
+
+def ave_pool2d(x,ksize,stride=1,pad=0):
+    return AvePool2d(ksize,stride,pad)(x)
